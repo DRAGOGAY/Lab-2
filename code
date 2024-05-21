@@ -1,72 +1,76 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 class Carriage
 {
-    public int id { get; set; }
-    public string type { get; set; }
-    public double length { get; set; }
-    public double weight { get; set; }
-    public string color { get; set; } 
+    public int UniqueId { get; set; }
+    public string Type { get; set; }
+    public double Weight { get; set; }
+    public double Length { get; set; }
+    public string Color { get; set; }
+    public int MaxPassengers { get; set; }
+    public double MaxCargoWeight { get; set; }
 
-    public Carriage(int id, string type, double length, double weight, string color)
+    public Carriage(int uniqueId, string type, double weight, double length, string color, int maxPassengers, double maxCargoWeight, bool hasRestroom, string manufacturer, int seatsCount)
     {
-        this.id = id;
-        this.type = type;
-        this.length = length;
-        this.weight = weight;
-        this.color = color;
+        UniqueId = uniqueId;
+        Type = type;
+        Weight = weight;
+        Length = length;
+        Color = color;
+        MaxPassengers = maxPassengers;
+        MaxCargoWeight = maxCargoWeight;
     }
-
 }
 
 class PassengerCarriage : Carriage
 {
-    public int Capacity { get; set; }
-    public string passengerClass { get; set; }  
+    public int PassengerCount { get; set; }
 
-    public PassengerCarriage(int id, double weight, double length, int capacity, string passengerClass) : base(id, "Passenger", weight, length, "White")
+    public PassengerCarriage(int uniqueId, double weight, double length, string color, int maxPassengers, int seatsCount) :
+        base(uniqueId, "Пасажирський", weight, length, color, maxPassengers, 0, true, "Manufacturer", seatsCount)
     {
-        Capacity = capacity;
-        this.passengerClass = passengerClass;
+        PassengerCount = 0;
     }
 }
 
 class FreightCarriage : Carriage
 {
-    public double LoadCapacity { get; set; }
-    public string cargoType { get; set; }  
+    public double MaxCargoVolume { get; set; }
 
-    public FreightCarriage(int id, double weight, double length, double loadCapacity, string cargoType) : base(id, "Cargo", weight, length, "Gray")
+    public FreightCarriage(int uniqueId, double weight, double length, string color, double maxCargoWeight, double maxCargoVolume) :
+        base(uniqueId, "Вантажний", weight, length, color, 0, maxCargoWeight, false, "Manufacturer", 0)
     {
-        LoadCapacity = loadCapacity;
-        this.cargoType = cargoType;
+        MaxCargoVolume = maxCargoVolume;
     }
 }
+
 
 class DiningCarriage : Carriage
 {
     public bool HasKitchen { get; set; }
-    public int seatingCapacity { get; set; }  
 
-    public DiningCarriage(int id, double weight, double length, bool hasKitchen, int seatingCapacity) : base(id, "Dining", weight, length, "Red")
+    public DiningCarriage(int uniqueId, double weight, double length, string color, bool hasRestroom, bool hasKitchen) :
+        base(uniqueId, "Ресторанний", weight, length, color, 50, 0, hasRestroom, "Manufacturer", 0)
     {
         HasKitchen = hasKitchen;
-        this.seatingCapacity = seatingCapacity;
     }
 }
 
 class SleepingCarriage : Carriage
 {
-    public int Beds { get; set; }
-    public bool isLuxury { get; set; }  
+    public bool HasBedding { get; set; }
 
-    public SleepingCarriage(int id, double weight, double length, int beds, bool isLuxury) : base(id, "Sleeping", weight, length, "Blue")
+    public SleepingCarriage(int uniqueId, double weight, double length, string color, bool hasRestroom, bool hasBedding) :
+        base(uniqueId, "Спальний", weight, length, color, 20, 0, hasRestroom, "Manufacturer", 20)
     {
-        Beds = beds;
-        this.isLuxury = isLuxury;
+        HasBedding = hasBedding;
     }
 }
+
 
 class Train
 {
@@ -76,54 +80,40 @@ class Train
     {
         carriages = new List<Carriage>();
     }
+
     public void AddCarriage(Carriage carriage)
     {
         carriages.Add(carriage);
     }
 
-    public void RemoveCarriage(int id)
+  
+    public void RemoveCarriage(Carriage carriage)
     {
-        carriages.RemoveAll(c => c.id == id);
+        carriages.Remove(carriage);
     }
-    public Carriage FindCarriage(int id)
+
+    
+    public List<Carriage> FindCarriagesByType(string type)
     {
-        return carriages.Find(c => c.id == id);
-    }
-    public void DisplayCarriages()
-    {
-        Console.WriteLine("Carriages in the train:");
+        List<Carriage> foundCarriages = new List<Carriage>();
         foreach (var carriage in carriages)
         {
-            Console.WriteLine($"ID: {carriage.id}, Type: {carriage.type}, Weight: {carriage.weight} tons, Length: {carriage.length} meters, Color: {carriage.color}");
-        }
-    }
-    public int TotalPassengers()
-    {
-        int totalPassengers = 0;
-        foreach (var carriage in carriages)
-        {
-            if (carriage is PassengerCarriage)
+            if (carriage.Type == type)
             {
-                totalPassengers += ((PassengerCarriage)carriage).Capacity;
+                foundCarriages.Add(carriage);
             }
         }
-        return totalPassengers;
+        return foundCarriages;
     }
-    public FreightCarriage FindMaxLoadCapacityCarriage()
+
+    
+    public void DisplayInfo()
     {
-        FreightCarriage maxLoadCapacityCarriage = null;
+        Console.WriteLine("Потяг складається з таких вагонів:");
         foreach (var carriage in carriages)
         {
-            if (carriage is FreightCarriage)
-            {
-                var freightCarriage = (FreightCarriage)carriage;
-                if (maxLoadCapacityCarriage == null || freightCarriage.LoadCapacity > maxLoadCapacityCarriage.LoadCapacity)
-                {
-                    maxLoadCapacityCarriage = freightCarriage;
-                }
-            }
+            Console.WriteLine($"Тип: {carriage.Type}, Вага: {carriage.Weight} т, Довжина: {carriage.Length} м, Колiр: {carriage.Color}");
         }
-        return maxLoadCapacityCarriage;
     }
 }
 
@@ -131,30 +121,21 @@ class Program
 {
     static void Main()
     {
-        Train train = new Train();
-      
-train.AddCarriage(new PassengerCarriage(1, 50.5, 25.2, 50, "First Class"));
-        train.AddCarriage(new FreightCarriage(2, 70.8, 30.0, 150.0, "Liquid"));
-        train.AddCarriage(new DiningCarriage(3, 40.0, 20.5, true, 30));
-        train.AddCarriage(new SleepingCarriage(4, 60.2, 28.0, 40, true));
+        
+        PassengerCarriage passengerCarriage1 = new PassengerCarriage(1, 50.5, 25.0, "Синiй", 60, 70);
+        FreightCarriage freightCarriage1 = new FreightCarriage(2, 70.2, 30.0, "Чорний", 100.0, 200.0);
+        DiningCarriage diningCarriage1 = new DiningCarriage(3, 40.0, 20.0, "Зелений", true, true);
+        SleepingCarriage sleepingCarriage1 = new SleepingCarriage(4, 60.0, 35.0, "Жовтий", true, true);
 
-        train.DisplayCarriages();
+Train train = new Train();
+        train.AddCarriage(passengerCarriage1);
+        train.AddCarriage(freightCarriage1);
+        train.AddCarriage(diningCarriage1);
+        train.AddCarriage(sleepingCarriage1);
 
-        train.RemoveCarriage(2);
-
-        Console.WriteLine("\nAfter removing carriage with ID 2:");
-        train.DisplayCarriages();
-
-        Console.WriteLine($"\nTotal passengers in the train: {train.TotalPassengers()}");
-
-        var maxLoadCapacityCarriage = train.FindMaxLoadCapacityCarriage();
-        if (maxLoadCapacityCarriage != null)
-        {
-            Console.WriteLine($"\nCarriage with the highest load capacity (ID: {maxLoadCapacityCarriage.id}): {maxLoadCapacityCarriage.LoadCapacity} tons");
-        }
-        else
-        {
-            Console.WriteLine("\nFreight carriage not available");
-        }
+       
+        train.DisplayInfo();
+        Console.ReadLine();
     }
 }
+
